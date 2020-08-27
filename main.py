@@ -1,63 +1,46 @@
-from contraction_handler import read_contractions
-import re
-from genius_handler import get_lyrics
-from spotify_handler import get_random_track
+from lyrics_api_handler import get_lyrics
+from lyrics_handler import replace_unknown, preprocess_lyrics, show_lyrics, valid_lyrics
+from spotify_api_handler import get_random_track
 
-def replace_unknown(lyrics_words: list, known_words: list):
-    hidden_lyrics_words = lyrics_words.copy()
-    for i in range(len(lyrics_words)):
-        word = hidden_lyrics_words[i]
-        if word not in known_words:
-            hidden_lyrics_words[i] = "_" * len(word)
-
-    return hidden_lyrics_words
-
-def clean_lyrics(lyrics):
-    exp = re.compile("\[(.*?)\]")
-    lyrics = exp.sub("", lyrics)
-    exp = re.compile("\((.*?)\)")
-    lyrics = exp.sub("", lyrics)
-    lyrics = lyrics.lower()
-
-    lyrics = lyrics.replace("\n", " ")
-
-    return lyrics
 
 def play():
-    author_name, track_name = get_random_track()
-    # print(author_name, " - ", track_name)
-    lyrics = get_lyrics(author_name, track_name)
-    # lyrics = get_lyrics("Dua Lipa", "Break My Heart")
-    # lyrics = get_lyrics("Queen", "We Will Rock You")
-    lyrics = clean_lyrics(lyrics)
-
-    punctuations = [".", ",", ";", "!", "?", "-", '"']
-    for p in punctuations:
-        lyrics = lyrics.replace(p, " " + p + " ")
-
-    replacable_contractions, shitty_contractions = read_contractions()
-
-    for key in replacable_contractions.keys():
-        lyrics = lyrics.replace(key.lower(), replacable_contractions[key].lower())
-
-    lyrics.replace("'", "")
-    lyrics_words = lyrics.split(" ")
-    known_words = punctuations
-    known_words.extend(shitty_contractions)
-
-    hidden_lyrics_words = "_"
-
+    verses, author_name, track_name = None, None, None
     try:
-        while "_" in hidden_lyrics_words:
+
+        fail = True
+        valid = False
+        lyrics, author_name, track_name = "", "", ""
+        while fail or not valid:
+            author_name, track_name = get_random_track()
+            lyrics, fail = get_lyrics(author_name, track_name)
+            valid = valid_lyrics(lyrics)
+
+            if fail or not valid:
+                print(author_name, track_name, " was not valid", len(lyrics))
+
+        # print(author_name, " - ", track_name)
+
+        # lyrics = get_lyrics("Dua Lipa", "Break My Heart")
+        # lyrics = get_lyrics("Queen", "We Will Rock You")
+
+        verses, known_words = preprocess_lyrics(lyrics)
+
+        replaced = True
+        while replaced:
             new_input = input("Guess a word: ")
             if new_input == "give up":
                 break
+            if new_input == ":q":
+                break
             for word in new_input.split(" "):
+                word = word.lower()
                 known_words.append(word)
-            hidden_lyrics_words = " ".join(replace_unknown(lyrics_words, known_words))
-            print(hidden_lyrics_words)
+                known_words.append(word + "s")
+            hidden_verses, replaced = replace_unknown(verses, known_words)
+            show_lyrics(hidden_verses)
     finally:
-        print(lyrics)
+        show_lyrics(verses)
+        print()
         print(author_name, track_name)
 
 
