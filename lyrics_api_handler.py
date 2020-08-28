@@ -13,6 +13,7 @@ genius = lyricsgenius.Genius(genius_token)
 def get_lyrics(main_artist, track_name, max_try = 10):
     exp = re.compile("\((.*?)\)")
     main_artist = exp.sub("", main_artist)
+    track_name = track_name.replace("Radio Edit", "")
 
     sys.stdout = open(os.devnull, 'w')
     song = None

@@ -1,6 +1,6 @@
 import re
 import copy
-from contraction_handler import read_contractions
+from contraction_handler import read_contractions, replace_contractions
 from lyrics_api_handler import get_lyrics
 
 
@@ -21,15 +21,6 @@ def replace_punctiations(lyrics):
     return lyrics, punctuations
 
 
-def replace_contractions(lyrics):
-    replacable_contractions, shitty_contractions = read_contractions()
-
-    for key in replacable_contractions.keys():
-        lyrics = lyrics.replace(key, replacable_contractions[key])
-
-    return lyrics, shitty_contractions
-
-
 def split_lyrics(lyrics):
     verses = []
     for verse in lyrics.split("\n\n\n"):
@@ -45,7 +36,9 @@ def split_lyrics(lyrics):
 
 
 def valid_lyrics(lyrics):
-    if not 50 < len(lyrics) < 3000:
+    if not 150 < len(lyrics) < 3000:
+        return False
+    if "you" not in lyrics.lower():
         return False
     return True
 
@@ -57,7 +50,7 @@ def preprocess_lyrics(lyrics):
     # lyrics = lyrics.replace("'", " " + "'" + " ") # ain't
     known_words = punctuations
     known_words.extend(shitty_contractions)
-    known_words.extend(["'"])
+    known_words.extend(["'", ""])
 
     verses = split_lyrics(lyrics)
 
@@ -71,7 +64,21 @@ def replace_unknown(verses: list, known_words: list):
         for j in range(len(verses[i])):
             for k in range(len(verses[i][j])):
                 word = hidden_verses[i][j][k]
-                if word.lower() not in known_words:
+
+                if word[0] == "'":
+                    continue
+                if len(word) > 10:
+                    continue
+
+                known = word.lower() not in known_words
+                if len(word) > 4:
+                    known = known or word[:-1].lower() not in known_words
+
+                if len(word) > 6:
+                    known = known or word[:-2].lower() not in known_words
+
+
+                if known:
                     hidden_verses[i][j][k] = "_" * len(word)
                     replaced = True
 
