@@ -9,7 +9,10 @@ def clean_lyrics(lyrics):
     lyrics = exp.sub("", lyrics)
     exp = re.compile("\((.*?)\)")
     lyrics = exp.sub("", lyrics)
-    # lyrics = lyrics.lower()
+
+    # lyrics = lyrics.replace('"', "")
+    lyrics = lyrics.replace('“', "")
+    lyrics = lyrics.replace('”', "")
 
     return lyrics
 
@@ -17,7 +20,7 @@ def clean_lyrics(lyrics):
 def replace_punctiations(lyrics):
     punctuations = [".", ",", ";", "!", "?", "-", '"']
     for p in punctuations:
-        lyrics = lyrics.replace(p, " " + p)
+        lyrics = lyrics.replace(p, " " + p + " ")
     return lyrics, punctuations
 
 
@@ -36,7 +39,7 @@ def split_lyrics(lyrics):
 
 
 def valid_lyrics(lyrics):
-    if not 150 < len(lyrics) < 3000:
+    if not 150 < len(lyrics) < 5000:
         return False
     if "you" not in lyrics.lower():
         return False
@@ -67,18 +70,21 @@ def replace_unknown(verses: list, known_words: list):
 
                 if word[0] == "'":
                     continue
+                if word[-1] == "'":
+                    continue
+
                 if len(word) > 10:
                     continue
 
-                known = word.lower() not in known_words
+                known = word.lower() in known_words
                 if len(word) > 4:
-                    known = known or word[:-1].lower() not in known_words
+                    known = known or word[:-1].lower() in known_words
 
                 if len(word) > 6:
-                    known = known or word[:-2].lower() not in known_words
+                    known = known or word[:-2].lower() in known_words
 
 
-                if known:
+                if not known:
                     hidden_verses[i][j][k] = "_" * len(word)
                     replaced = True
 

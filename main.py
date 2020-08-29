@@ -12,6 +12,9 @@ def play():
         lyrics, author_name, track_name = "", "", ""
         while fail or not valid:
             author_name, track_name = get_random_track()
+            # author_name, track_name = "Nuages", "Dreams"
+            # author_name, track_name = "Dua Lipa", "Break My Heart"
+
             lyrics, fail = get_lyrics(author_name, track_name)
             valid = valid_lyrics(lyrics)
 
@@ -19,9 +22,6 @@ def play():
                 print(author_name, track_name, " was not valid", len(lyrics))
 
         # print(author_name, " - ", track_name)
-
-        # lyrics = get_lyrics("Dua Lipa", "Break My Heart")
-        # lyrics = get_lyrics("Queen", "We Will Rock You")
 
         verses, known_words = preprocess_lyrics(lyrics)
 
@@ -36,6 +36,7 @@ def play():
                 word = word.lower()
                 known_words.append(word)
                 known_words.append(word + "s")
+                known_words.append(word + "ing")
             hidden_verses, replaced = replace_unknown(verses, known_words)
             show_lyrics(hidden_verses)
     finally:
