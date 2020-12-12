@@ -42,6 +42,7 @@ def play():
     finally:
         show_lyrics(verses)
         print()
+        print()
         print(author_name, track_name)
 
 
